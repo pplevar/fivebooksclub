@@ -228,5 +228,9 @@ def find_book(search_text):
         book = search_result_book_parser(div_book_html)
         if book is not None:
             books.append(book)
+    for div_book_html in page.xpath('.//div[@id="objects-block"][1]/div'):
+        book = search_result_book_parser(div_book_html)
+        if book is not None:
+            books.append(book)
 
     return books
