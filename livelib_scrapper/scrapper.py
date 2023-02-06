@@ -1,10 +1,10 @@
 import re
 from collections import defaultdict
 import math
+
 from lxml import html, etree
 from .book import Book
 from .page_loader import download_page, wait_for_delay
-
 
 def error_handler(where, raw):
     """
@@ -223,6 +223,7 @@ def find_book(search_text):
         page = html.fromstring(download_page(f"https://www.livelib.ru/find/{search_text}"))
     except Exception as e:
         print(f"There is exception fired: {e}")
+        return None
 
     for div_book_html in page.xpath('.//div[@id="objects-block"][2]/div'):
         book = search_result_book_parser(div_book_html)
@@ -234,3 +235,26 @@ def find_book(search_text):
             books.append(book)
 
     return books
+
+
+def get_book_meta(row):
+    meta = {}
+    doc = download_page(row['WorkLink'], title_contains=row['WorkTitle'])
+    if doc is None:
+        return None
+
+    doc.strip()
+    page = html.fromstring(doc)
+
+    genres = []
+    for genre_a in page.xpath("//*[contains(text(), ' Жанры:')]/a"):
+        genre = genre_a.text
+        if '№' in genre:
+            genre = genre[genre.find("в") + 2:]
+        genres.append(genre)
+
+    rating = page.xpath('//div[@class="bc-rating"]/a/span')[0].text.strip()
+    meta['genres'] = genres
+    meta['rating'] = rating
+
+    return meta
